@@ -130,14 +130,21 @@ except MyFileNotFoundError:
 #########################################################
 
 setup(
-    name = "mylibrary",
-    version = version,
-    author = "Juha Jeronen",
-    author_email = "juha.jeronen@jyu.fi",
-    url = "https://github.com/Technologicat/setup-template-cython",
+    name         = "setup-template-cython",
+    version      = version,
+    author       = "Christian Marquardt",
+    author_email = "christian@marquardt.sc",
+    url          = "https://github.com/cmarquardt/setup-template-cython",
 
-    description = SHORTDESC,
+    provides         = ["setup_template_cython"],
+    description      = SHORTDESC,
     long_description = DESC,
+
+    # Keywords for PyPI (in case you upload your project)
+    #
+    # e.g. the keywords your project uses as topics on GitHub, minus "python" (if there)
+    #
+    keywords = ["setuptools template example"],
 
     # CHANGE THIS
     license = "Unlicense",
@@ -158,11 +165,8 @@ setup(
                     "Intended Audience :: Science/Research",
                     "License :: Unlicense",  # not a standard classifier; CHANGE THIS
                     "Operating System :: POSIX :: Linux",
+                    "Operating System :: MacOS :: MacOS X",
                     "Programming Language :: Python",
-                    "Programming Language :: Python :: 2",
-                    "Programming Language :: Python :: 2.7",
-                    "Programming Language :: Python :: 3",
-                    "Programming Language :: Python :: 3.4",
                     "Topic :: Scientific/Engineering",
                     "Topic :: Scientific/Engineering :: Mathematics",
                     "Topic :: Software Development :: Libraries",
@@ -172,15 +176,8 @@ setup(
     # See
     #    http://setuptools.readthedocs.io/en/latest/setuptools.html
     #
-    setup_requires = ["numpy"],
+    setup_requires   = ["numpy"],
     install_requires = ["numpy"],
-    provides = ["setup_template_nocython"],
-
-    # keywords for PyPI (in case you upload your project)
-    #
-    # e.g. the keywords your project uses as topics on GitHub, minus "python" (if there)
-    #
-    keywords = ["setuptools template example"],
 
     # Declare packages so that  python -m setup build  will copy .py files (especially __init__.py).
     #
@@ -193,4 +190,3 @@ setup(
     # Custom data files not inside a Python package
     data_files = datafiles
 )
-

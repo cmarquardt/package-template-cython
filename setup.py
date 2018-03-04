@@ -91,16 +91,12 @@ import os
 from setuptools import setup
 from setuptools.extension import Extension
 
-try:
-    from Cython.Build import cythonize
-except ImportError:
-    sys.exit("Cython not found. Cython is needed to build the extension modules.")
-
 
 #########################################################
 # Definitions
 #########################################################
 
+# TODO: This should be replaced by supporting a setup.cfg.
 # Define our base set of compiler and linker flags.
 #
 # This is geared toward x86_64, see
@@ -163,7 +159,7 @@ else:
     raise ValueError("Unknown build configuration '%s'; valid: 'optimized', 'debug'" % (build_type))
 
 
-def declare_cython_extension(extName, use_math=False, use_openmp=False, include_dirs=None):
+def declare_extension(extName, math = False, openmp = False, include_dirs = None):
     """Declare a Cython extension module for setuptools.
 
 Parameters:
@@ -183,7 +179,7 @@ Return value:
 """
     extPath = extName.replace(".", os.path.sep)+".pyx"
 
-    if use_math:
+    if math:
         compile_args = list(my_extra_compile_args_math) # copy
         link_args    = list(my_extra_link_args_math)
         libraries    = ["m"]  # link libm; this is a list of library names without the "lib" prefix
@@ -193,7 +189,7 @@ Return value:
         libraries    = None  # value if no libraries, see setuptools.extension._Extension
 
     # OpenMP
-    if use_openmp:
+    if openmp:
         compile_args.insert( 0, openmp_compile_args )
         link_args.insert( 0, openmp_link_args )
 
@@ -204,10 +200,10 @@ Return value:
     #
     return Extension( extName,
                       [extPath],
-                      extra_compile_args=compile_args,
-                      extra_link_args=link_args,
-                      include_dirs=include_dirs,
-                      libraries=libraries
+                      extra_compile_args = compile_args,
+                      extra_link_args = link_args,
+                      include_dirs = include_dirs,
+                      libraries = libraries
                     )
 
 
@@ -259,40 +255,36 @@ except MyFileNotFoundError:
 
 # declare Cython extension modules here
 #
-ext_module_dostuff    = declare_cython_extension( "mylibrary.dostuff",               use_math=False, use_openmp=False , include_dirs=my_include_dirs )
-ext_module_compute    = declare_cython_extension( "mylibrary.compute",               use_math=True,  use_openmp=False , include_dirs=my_include_dirs )
-ext_module_helloworld = declare_cython_extension( "mylibrary.subpackage.helloworld", use_math=False, use_openmp=False , include_dirs=my_include_dirs )
+ext_module_dostuff    = declare_extension( "mylibrary.dostuff",               math = False, openmp = False , include_dirs = my_include_dirs )
+ext_module_compute    = declare_extension( "mylibrary.compute",               math = True,  openmp = False , include_dirs = my_include_dirs )
+ext_module_helloworld = declare_extension( "mylibrary.subpackage.helloworld", math = False, openmp = False , include_dirs = my_include_dirs )
 
 # this is mainly to allow a manual logical ordering of the declared modules
 #
-cython_ext_modules = [ext_module_dostuff,
-                      ext_module_compute,
-                      ext_module_helloworld]
-
-# Call cythonize() explicitly, as recommended in the Cython documentation. See
-#     http://cython.readthedocs.io/en/latest/src/reference/compilation.html#compiling-with-distutils
-#
-# This will favor Cython's own handling of '.pyx' sources over that provided by setuptools.
-#
-# Note that my_ext_modules is just a list of Extension objects. We could add any C sources (not coming from Cython modules) here if needed.
-# cythonize() just performs the Cython-level processing, and returns a list of Extension objects.
-#
-my_ext_modules = cythonize( cython_ext_modules, include_path=my_include_dirs, gdb_debug=my_debug )
-
+ext_modules = [ext_module_dostuff,
+               ext_module_compute,
+               ext_module_helloworld]
 
 #########################################################
 # Call setup()
 #########################################################
 
 setup(
-    name = "setup-template-cython",
-    version = version,
-    author = "Juha Jeronen",
-    author_email = "juha.jeronen@jyu.fi",
-    url = "https://github.com/Technologicat/setup-template-cython",
+    name         = "setup-template-cython",
+    version      = version,
+    author       = "Christian Marquardt",
+    author_email = "christian@marquardt.sc",
+    url          = "https://github.com/cmarquardt/setup-template-cython",
 
-    description = SHORTDESC,
+    provides         = ["setup_template_cython"],
+    description      = SHORTDESC,
     long_description = DESC,
+
+    # Keywords for PyPI (in case you upload your project)
+    #
+    # e.g. the keywords your project uses as topics on GitHub, minus "python" (if there)
+    #
+    keywords = ["setuptools template example cython"],
 
     # CHANGE THIS
     license = "Unlicense",
@@ -313,12 +305,9 @@ setup(
                     "Intended Audience :: Science/Research",
                     "License :: Unlicense",  # not a standard classifier; CHANGE THIS
                     "Operating System :: POSIX :: Linux",
+                    "Operating System :: MacOS :: MacOS X",
                     "Programming Language :: Cython",
                     "Programming Language :: Python",
-                    "Programming Language :: Python :: 2",
-                    "Programming Language :: Python :: 2.7",
-                    "Programming Language :: Python :: 3",
-                    "Programming Language :: Python :: 3.4",
                     "Topic :: Scientific/Engineering",
                     "Topic :: Scientific/Engineering :: Mathematics",
                     "Topic :: Software Development :: Libraries",
@@ -328,19 +317,14 @@ setup(
     # See
     #    http://setuptools.readthedocs.io/en/latest/setuptools.html
     #
-    setup_requires = ["cython", "numpy"],
+    setup_requires   = ["setuptools>=18.0",
+                        "cython",
+                        "numpy"],
     install_requires = ["numpy"],
-    provides = ["setup_template_cython"],
-
-    # keywords for PyPI (in case you upload your project)
-    #
-    # e.g. the keywords your project uses as topics on GitHub, minus "python" (if there)
-    #
-    keywords = ["setuptools template example cython"],
 
     # All extension modules (list of Extension objects)
     #
-    ext_modules = my_ext_modules,
+    ext_modules = ext_modules,
 
     # Declare packages so that  python -m setup build  will copy .py files (especially __init__.py).
     #
@@ -351,7 +335,7 @@ setup(
     # Install also Cython headers so that other Cython modules can cimport ours
     #
     # Fileglobs relative to each package, **does not** automatically recurse into subpackages.
-    #    
+    #
     # FIXME: force sdist, but sdist only, to keep the .pyx files (this puts them also in the bdist)
     package_data={'mylibrary': ['*.pxd', '*.pyx'],
                   'mylibrary.subpackage': ['*.pxd', '*.pyx']},
@@ -365,4 +349,3 @@ setup(
     # Custom data files not inside a Python package
     data_files = datafiles
 )
-
