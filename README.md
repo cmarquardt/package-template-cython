@@ -6,7 +6,7 @@ This is a fork of [Technologicat's original version](https://github.com/Technolo
 
 ### TL;DR
 
-Copy `setup.py`, customize, enjoy.
+Copy `setup.py`, `mylibrary/_version.py` and `mylibrary/_static_version.py`, customize, enjoy.
 
 ### Introduction
 
@@ -49,7 +49,7 @@ Our [`setup.py`](setup.py) features the following:
  - Get `absolute_import` working in a Cython project
    - For compatibility with both Python 3 and Python 2.7 (with `from __future__ import absolute_import`)
    - For scientific developers used to Python 2.7, this is perhaps the only tricky part in getting custom Cython code to play nicely with Python 3. (As noted elsewhere[[a]](http://www.python3statement.org/)[[b]](http://python-3-for-scientists.readthedocs.io/en/latest/), it is time to move to Python 3.)
- - Automatically grab `__version__` from `mylibrary/__init__.py` (using AST; no import or regexes), so that you [DontRepeatYourself](http://wiki.c2.com/?DontRepeatYourself) declaring your package version (based on [[5]][getversion])
+ - Automatically grab `__version__` from git tags, so that you [DontRepeatYourself](http://wiki.c2.com/?DontRepeatYourself) declaring your package version (based on [[5]][miniver])
  - Support for compiler and linker flags for OpenMP, to support `cython.parallel.prange`.
  - Make `setup.py` pick up non-package data files, such as your documentation and usage examples (based on [[6]][datafolder]). However, see the section on **Packaging data files** below.
  - Make `setup.py` pick up data files inside your Python packages.
@@ -63,6 +63,7 @@ In contrast to Technologicat's original version](https://github.com/Technologica
  - The mechanism of using Cython in cooperation with `setuptools` was slightly changed in order to support target systems not having Cython installed;
  - Added an improved clean command;
  - Added a `cython` command to manually regenerating C source files for cython-based extensions;
+ - Changed getting the version information from a hardcoded value in the projects `__init__.py` (based on [[8]][getversion]) to using miniver
  - Removed hardcoded compiler and linker switches, including support for debug vs. optimised builds;
  - Removed the distinction math vs. non-math extensions, instead always linking with -lm.
 
@@ -295,7 +296,7 @@ Includes short code snippets based on StackOverflow answers; for attribution, or
 [packaging]: https://packaging.python.org/current/#packaging-tool-recommendations
 [distributing]: https://packaging.python.org/distributing/
 [setup-py]: https://packaging.python.org/distributing/#setup-py
-[getgitversion]: http://dcreager.net/2010/02/10/setuptools-git-version-numbers/
+[miniver]: https://github.com/jbweston/miniver
 [getversion]: http://stackoverflow.com/questions/2058802/how-can-i-get-the-version-defined-in-setup-py-setuptools-in-my-package
 [datafolder]: http://stackoverflow.com/questions/13628979/setuptools-how-to-make-package-contain-extra-data-folder-and-all-folders-inside
 [enforcing]: http://stackoverflow.com/questions/19534896/enforcing-python-version-in-setup-py
