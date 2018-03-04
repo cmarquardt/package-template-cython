@@ -133,9 +133,10 @@ openmp_link_args    = ['-fopenmp']
 my_include_dirs = ["."]
 
 
+# Wrapper to create (Cython-based) extensions
+#
 # FIXME: Add libraries - also from a setup.cfg file?
 # FIXME: Add arbitrary source code / C files in addition to the main cython .pyx
-
 def declare_extension(extName, openmp = False, include_dirs = None):
     """Declare a Cython extension module for setuptools.
 
@@ -197,6 +198,22 @@ for docname in standard_docs:
             detected_docs.append(filename)
 datafiles.append( ('.', detected_docs) )
 
+
+# Clean command (from https://stackoverflow.com/a/1712544)
+#
+from setuptools import Command # or distutils.core?
+import os, sys
+
+class CleanCommand(Command):
+    description = "custom clean command that forcefully removes dist/build and .egg-info directories"
+    user_options = []
+    def initialize_options(self):
+        self.cwd = None
+    def finalize_options(self):
+        self.cwd = os.getcwd()
+    def run(self):
+        assert os.getcwd() == self.cwd, "Must be in package root: %s" % self.cwd
+        os.system("rm -rf ./build ./dist ./*.egg-info")
 
 # Extract __version__ from the package __init__.py
 # (since it's not a good idea to actually run __init__.py during the build process).
@@ -318,5 +335,10 @@ setup(
     zip_safe = False,
 
     # Custom data files not inside a Python package
-    data_files = datafiles
+    data_files = datafiles,
+
+    # Additional / improve commands
+    cmdclass = {
+                "clean": CleanCommand
+                }
 )
