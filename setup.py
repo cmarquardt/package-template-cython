@@ -22,6 +22,8 @@ or
 
 from __future__ import division, print_function, absolute_import
 
+# Python 3 vs python 2
+#
 try:
     # Python 3
     MyFileNotFoundError = FileNotFoundError
@@ -30,6 +32,7 @@ except:  # FileNotFoundError does not exist in Python 2.7
     # - open() raises IOError
     # - remove() (not currently used here) raises OSError
     MyFileNotFoundError = (IOError, OSError)
+
 
 #########################################################
 # General config
@@ -86,12 +89,21 @@ import os
 from setuptools import setup
 from setuptools.extension import Extension
 
+# Cython installed? Must be imported after setuptools Extension...
+#
+try:
+    # Cython
+    from Cython.Build import cythonize
+    use_cython = True
+except: # Cython not found; just use C sources
+    use_cython = False
+
 
 #########################################################
 # Definitions
 #########################################################
 
-# TODO: This should be replaced by properly supporting a setup.cfg file
+# FIXME: This should be replaced by properly supporting a setup.cfg file
 
 # Define our base set of compiler and linker flags.
 #
@@ -121,8 +133,8 @@ openmp_link_args    = ['-fopenmp']
 my_include_dirs = ["."]
 
 
-# TODO: Add libraries - also from a setup.cfg file?
-# TODO: Add arbitrary source code / C files in addition to the main cython .pyx
+# FIXME: Add libraries - also from a setup.cfg file?
+# FIXME: Add arbitrary source code / C files in addition to the main cython .pyx
 
 def declare_extension(extName, openmp = False, include_dirs = None):
     """Declare a Cython extension module for setuptools.
@@ -210,7 +222,7 @@ except MyFileNotFoundError:
 # Set up modules
 #########################################################
 
-# declare Cython extension modules here
+# Declare Cython extension modules here
 #
 ext_module_dostuff    = declare_extension( "mylibrary.dostuff",               openmp = False , include_dirs = my_include_dirs )
 ext_module_compute    = declare_extension( "mylibrary.compute",               openmp = False , include_dirs = my_include_dirs )
@@ -221,6 +233,9 @@ ext_module_helloworld = declare_extension( "mylibrary.subpackage.helloworld", op
 ext_modules = [ext_module_dostuff,
                ext_module_compute,
                ext_module_helloworld]
+if use_cython:
+    ext_modules = cythonize(ext_modules)
+
 
 #########################################################
 # Call setup()
@@ -275,7 +290,6 @@ setup(
     #    http://setuptools.readthedocs.io/en/latest/setuptools.html
     #
     setup_requires   = ["setuptools>=18.0",
-                        "cython",
                         "numpy"],
     install_requires = ["numpy"],
 
