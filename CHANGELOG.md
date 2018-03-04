@@ -1,3 +1,8 @@
+## [v0.1.x] - Changes for my (cmarquardt's) use
+ - support cython through setuptools
+ - remove support for debug vs optimised builds
+ - remove support for math vs non-math extensions
+
 ## [v0.1.5] - README update edition
  - reorganize README to improve clarity
  - improve documentation on packaging data files
@@ -19,4 +24,3 @@
 
 ## [v0.1.0]
  - initial release
-
