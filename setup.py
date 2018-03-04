@@ -232,24 +232,50 @@ class CythonizeCommand(Command):
         else:
             print("WARNING: Nothing found to cythonize...")
 
+cmdclass = {"clean": CleanCommand,
+            "cython": CythonizeCommand,
+            "cythonise": CythonizeCommand,
+            "cythonize": CythonizeCommand
+           }
+
 # Extract __version__ from the package __init__.py
 # (since it's not a good idea to actually run __init__.py during the build process).
 #
 # http://stackoverflow.com/questions/2058802/how-can-i-get-the-version-defined-in-setup-py-setuptools-in-my-package
 #
-import ast
-init_py_path = os.path.join(libname, '__init__.py')
-version = '0.0.unknown'
-try:
-    with open(init_py_path) as f:
-        for line in f:
-            if line.startswith('__version__'):
-                version = ast.parse(line).body[0].value.s
-                break
-        else:
-            print( "WARNING: Version information not found in '%s', using placeholder '%s'" % (init_py_path, version), file = sys.stderr )
-except MyFileNotFoundError:
-    print( "WARNING: Could not find file '%s', using placeholder version information '%s'" % (init_py_path, version), file = sys.stderr )
+#import ast
+#init_py_path = os.path.join(libname, '__init__.py')
+#version = '0.0.unknown'
+#try:
+#    with open(init_py_path) as f:
+#        for line in f:
+#            if line.startswith('__version__'):
+#                version = ast.parse(line).body[0].value.s
+#                break
+#        else:
+#            print( "WARNING: Version information not found in '%s', using placeholder '%s'" % (init_py_path, version), file = sys.stderr )
+#except MyFileNotFoundError:
+#    print( "WARNING: Could not find file '%s', using placeholder version information '%s'" % (init_py_path, version), file = sys.stderr )
+
+# Automatic versioning based on https://github.com/jbweston/miniver:
+#
+def get_version_and_cmdclass(package_name):
+    try: # Python 3
+        from importlib.util import module_from_spec, spec_from_file_location
+        spec = spec_from_file_location('version',
+                                       os.path.join(package_name, "_version.py"))
+        module = module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.__version__, module.cmdclass
+    except: # Python 2
+        import imp
+        module = imp.load_source(package_name.split('.')[-1], os.path.join(package_name, "_version.py"))
+        return module.__version__, module.cmdclass
+
+version, ver_cmdclass = get_version_and_cmdclass('mylibrary')
+
+# Join our own and miniver's cmdclass disctionaries
+cmdclass.update(ver_cmdclass) # Add ver_cmdclass to cmdclass; not ver_cmdclass would take precedence in case of overlappingkeys
 
 
 #########################################################
@@ -357,9 +383,5 @@ setup(
     data_files = datafiles,
 
     # Additional / improve commands
-    cmdclass = {"clean": CleanCommand,
-                "cython": CythonizeCommand,
-                "cythonise": CythonizeCommand,
-                "cythonize": CythonizeCommand
-                }
+    cmdclass = cmdclass
 )
