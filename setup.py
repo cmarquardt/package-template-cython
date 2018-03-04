@@ -41,11 +41,6 @@ except:  # FileNotFoundError does not exist in Python 2.7
 #
 libname="mylibrary"
 
-# Choose build type.
-#
-build_type="optimized"
-#build_type="debug"
-
 # Short description for package list on PyPI
 #
 SHORTDESC="setuptools template for Cython projects"
@@ -96,29 +91,16 @@ from setuptools.extension import Extension
 # Definitions
 #########################################################
 
-# TODO: This should be replaced by supporting a setup.cfg.
+# TODO: This should be replaced by properly supporting a setup.cfg file
+
 # Define our base set of compiler and linker flags.
-#
-# This is geared toward x86_64, see
-#    https://gcc.gnu.org/onlinedocs/gcc-4.6.4/gcc/i386-and-x86_002d64-Options.html
-#
-# Customize these as needed.
 #
 # Note that -O3 may sometimes cause mysterious problems, so we limit ourselves to -O2.
 
-# Modules involving numerical computations
-#
-extra_compile_args_math_optimized    = ['-march=native', '-O2', '-msse', '-msse2', '-mfma', '-mfpmath=sse']
-extra_compile_args_math_debug        = ['-march=native', '-O0', '-g']
-extra_link_args_math_optimized       = []
-extra_link_args_math_debug           = []
-
-# Modules that do not involve numerical computations
-#
-extra_compile_args_nonmath_optimized = ['-O2']
-extra_compile_args_nonmath_debug     = ['-O0', '-g']
-extra_link_args_nonmath_optimized    = []
-extra_link_args_nonmath_debug        = []
+extra_compile_args = ['-O2']
+extra_compile_args = ['-O0', '-g']
+extra_link_args    = []
+extra_link_args    = []
 
 # Additional flags to compile/link with OpenMP
 #
@@ -139,27 +121,10 @@ openmp_link_args    = ['-fopenmp']
 my_include_dirs = ["."]
 
 
-# Choose the base set of compiler and linker flags.
-#
-if build_type == 'optimized':
-    my_extra_compile_args_math    = extra_compile_args_math_optimized
-    my_extra_compile_args_nonmath = extra_compile_args_nonmath_optimized
-    my_extra_link_args_math       = extra_link_args_math_optimized
-    my_extra_link_args_nonmath    = extra_link_args_nonmath_optimized
-    my_debug = False
-    print( "build configuration selected: optimized" )
-elif build_type == 'debug':
-    my_extra_compile_args_math    = extra_compile_args_math_debug
-    my_extra_compile_args_nonmath = extra_compile_args_nonmath_debug
-    my_extra_link_args_math       = extra_link_args_math_debug
-    my_extra_link_args_nonmath    = extra_link_args_nonmath_debug
-    my_debug = True
-    print( "build configuration selected: debug" )
-else:
-    raise ValueError("Unknown build configuration '%s'; valid: 'optimized', 'debug'" % (build_type))
+# TODO: Add libraries - also from a setup.cfg file?
+# TODO: Add arbitrary source code / C files in addition to the main cython .pyx
 
-
-def declare_extension(extName, math = False, openmp = False, include_dirs = None):
+def declare_extension(extName, openmp = False, include_dirs = None):
     """Declare a Cython extension module for setuptools.
 
 Parameters:
@@ -167,26 +132,18 @@ Parameters:
         Absolute module name, e.g. use `mylibrary.mypackage.mymodule`
         for the Cython source file `mylibrary/mypackage/mymodule.pyx`.
 
-    use_math : bool
-        If True, set math flags and link with ``libm``.
-
-    use_openmp : bool
+    openmp : bool
         If True, compile and link with OpenMP.
 
 Return value:
     Extension object
         that can be passed to ``setuptools.setup``.
 """
-    extPath = extName.replace(".", os.path.sep)+".pyx"
+    extPath = extName.replace(".", os.path.sep) + ".pyx"
 
-    if math:
-        compile_args = list(my_extra_compile_args_math) # copy
-        link_args    = list(my_extra_link_args_math)
-        libraries    = ["m"]  # link libm; this is a list of library names without the "lib" prefix
-    else:
-        compile_args = list(my_extra_compile_args_nonmath)
-        link_args    = list(my_extra_link_args_nonmath)
-        libraries    = None  # value if no libraries, see setuptools.extension._Extension
+    compile_args = list(extra_compile_args) # copy
+    link_args    = list(extra_link_args)
+    libraries    = ["m"]  # link libm; this is a list of library names without the "lib" prefix
 
     # OpenMP
     if openmp:
@@ -201,9 +158,9 @@ Return value:
     return Extension( extName,
                       [extPath],
                       extra_compile_args = compile_args,
-                      extra_link_args = link_args,
-                      include_dirs = include_dirs,
-                      libraries = libraries
+                      extra_link_args    = link_args,
+                      include_dirs       = include_dirs,
+                      libraries          = libraries
                     )
 
 
@@ -244,9 +201,9 @@ try:
                 version = ast.parse(line).body[0].value.s
                 break
         else:
-            print( "WARNING: Version information not found in '%s', using placeholder '%s'" % (init_py_path, version), file=sys.stderr )
+            print( "WARNING: Version information not found in '%s', using placeholder '%s'" % (init_py_path, version), file = sys.stderr )
 except MyFileNotFoundError:
-    print( "WARNING: Could not find file '%s', using placeholder version information '%s'" % (init_py_path, version), file=sys.stderr )
+    print( "WARNING: Could not find file '%s', using placeholder version information '%s'" % (init_py_path, version), file = sys.stderr )
 
 
 #########################################################
@@ -255,9 +212,9 @@ except MyFileNotFoundError:
 
 # declare Cython extension modules here
 #
-ext_module_dostuff    = declare_extension( "mylibrary.dostuff",               math = False, openmp = False , include_dirs = my_include_dirs )
-ext_module_compute    = declare_extension( "mylibrary.compute",               math = True,  openmp = False , include_dirs = my_include_dirs )
-ext_module_helloworld = declare_extension( "mylibrary.subpackage.helloworld", math = False, openmp = False , include_dirs = my_include_dirs )
+ext_module_dostuff    = declare_extension( "mylibrary.dostuff",               openmp = False , include_dirs = my_include_dirs )
+ext_module_compute    = declare_extension( "mylibrary.compute",               openmp = False , include_dirs = my_include_dirs )
+ext_module_helloworld = declare_extension( "mylibrary.subpackage.helloworld", openmp = False , include_dirs = my_include_dirs )
 
 # this is mainly to allow a manual logical ordering of the declared modules
 #
@@ -270,11 +227,11 @@ ext_modules = [ext_module_dostuff,
 #########################################################
 
 setup(
-    name         = "setup-template-cython",
-    version      = version,
-    author       = "Christian Marquardt",
-    author_email = "christian@marquardt.sc",
-    url          = "https://github.com/cmarquardt/setup-template-cython",
+    name             = "setup-template-cython",
+    version          = version,
+    author           = "Christian Marquardt",
+    author_email     = "christian@marquardt.sc",
+    url              = "https://github.com/cmarquardt/setup-template-cython",
 
     provides         = ["setup_template_cython"],
     description      = SHORTDESC,
@@ -284,13 +241,13 @@ setup(
     #
     # e.g. the keywords your project uses as topics on GitHub, minus "python" (if there)
     #
-    keywords = ["setuptools template example cython"],
+    keywords         = ["setuptools template example cython"],
 
     # CHANGE THIS
-    license = "Unlicense",
+    license          = "Unlicense",
 
     # free-form text field; http://stackoverflow.com/questions/34994130/what-platforms-argument-to-setup-in-setup-py-does
-    platforms = ["Linux"],
+    platforms        = ["Linux", "MacOS X"],
 
     # See
     #    https://pypi.python.org/pypi?%3Aaction=list_classifiers
