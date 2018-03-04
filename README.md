@@ -1,8 +1,8 @@
-## Setup.py template for Cython projects
+## Package template (setup.py) for Cython projects
 
-This projects provides a `setuptools`-based `setup.py` template for Cython projects, and some notes on packaging.
+This projects provides a `setuptools`-based `setup.py` template for Cython projects with git-based automated versioning, and some notes on packaging.
 
-This is a fork of [Technologicat's original version](https://github.com/Technologicat/setup-template-cython), slightly adapted to my needs.
+This is a fork of [Technologicat's original version](https://github.com/Technologicat/setup-template-cython), somewhat adapted to my needs.
 
 ### TL;DR
 
@@ -43,6 +43,7 @@ A pruned-down version of setup.py for pure Python projects, called [`setup-purep
 
 Our [`setup.py`](setup.py) features the following:
 
+ - A sample project template 
  - The most important fields of `setup()`
    - If this is all you need, [simple-cython-example](https://github.com/thearn/simple-cython-example) is much cleaner.
    - If this is all you need, and you somehow ended up here even though your project is pure Python, [PyPA's sampleproject](https://github.com/pypa/sampleproject/blob/master/setup.py) (as mentioned in [[4]][setup-py]) has more detail on this.

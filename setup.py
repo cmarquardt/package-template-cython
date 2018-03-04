@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-"""setuptools-based setup.py template for Cython projects.
+"""setuptools-based package template for Cython projects.
 
 Main setup for the library.
 
@@ -46,14 +46,15 @@ libname="mylibrary"
 
 # Short description for package list on PyPI
 #
-SHORTDESC="setuptools template for Cython projects"
+SHORTDESC="setuptools package template for Cython projects"
 
 # Long description for package homepage on PyPI
 #
-DESC="""setuptools-based setup.py template for Cython projects.
+DESC="""setuptools-based package template for Cython projects.
 
 The focus of this template is on numerical scientific projects,
-where a custom Cython extension (containing all-new code) can bring a large speedup.
+where a custom Cython extension (containing all-new code) can
+bring a large speedup.
 
 For completeness, a minimal Cython module is included.
 
@@ -304,13 +305,13 @@ if use_cython:
 #########################################################
 
 setup(
-    name             = "setup-template-cython",
+    name             = "package-template-cython",
     version          = version,
     author           = "Christian Marquardt",
     author_email     = "christian@marquardt.sc",
-    url              = "https://github.com/cmarquardt/setup-template-cython",
+    url              = "https://github.com/cmarquardt/package-template-cython",
 
-    provides         = ["setup_template_cython"],
+    provides         = ["package_template_cython"],
     description      = SHORTDESC,
     long_description = DESC,
 
@@ -318,7 +319,7 @@ setup(
     #
     # e.g. the keywords your project uses as topics on GitHub, minus "python" (if there)
     #
-    keywords         = ["setuptools template example cython"],
+    keywords         = ["setuptools package template example cython"],
 
     # CHANGE THIS
     license          = "Unlicense",
@@ -382,6 +383,6 @@ setup(
     # Custom data files not inside a Python package
     data_files = datafiles,
 
-    # Additional / improve commands
+    # Additional / improved commands
     cmdclass = cmdclass
 )

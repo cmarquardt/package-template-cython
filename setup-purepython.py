@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-"""setuptools-based setup.py template.
+"""setuptools-based package template.
 
 Pruned-down version of the Cython template, for pure Python projects (no Cython).
 
@@ -43,11 +43,11 @@ libname="mylibrary"
 
 # Short description for package list on PyPI
 #
-SHORTDESC="yet another setuptools template for Python projects"
+SHORTDESC="yet another setuptools package template for Python projects"
 
 # Long description for package homepage on PyPI
 #
-DESC="""yet another setuptools-based setup.py template for Python projects.
+DESC="""yet another setuptools-based package template for Python projects.
 
 This is a pruned-down version of the Cython template, for pure Python projects (no Cython).
 
@@ -110,19 +110,36 @@ datafiles.append( ('.', detected_docs) )
 #
 # http://stackoverflow.com/questions/2058802/how-can-i-get-the-version-defined-in-setup-py-setuptools-in-my-package
 #
-import ast
-init_py_path = os.path.join(libname, '__init__.py')
-version = '0.0.unknown'
-try:
-    with open(init_py_path) as f:
-        for line in f:
-            if line.startswith('__version__'):
-                version = ast.parse(line).body[0].value.s
-                break
-        else:
-            print( "WARNING: Version information not found in '%s', using placeholder '%s'" % (init_py_path, version), file=sys.stderr )
-except MyFileNotFoundError:
-    print( "WARNING: Could not find file '%s', using placeholder version information '%s'" % (init_py_path, version), file=sys.stderr )
+#import ast
+#init_py_path = os.path.join(libname, '__init__.py')
+#version = '0.0.unknown'
+#try:
+#    with open(init_py_path) as f:
+#        for line in f:
+#            if line.startswith('__version__'):
+#                version = ast.parse(line).body[0].value.s
+#                break
+#        else:
+#            print( "WARNING: Version information not found in '%s', using placeholder '%s'" % (init_py_path, version), file=sys.stderr )
+#except MyFileNotFoundError:
+#    print( "WARNING: Could not find file '%s', using placeholder version information '%s'" % (init_py_path, version), file=sys.stderr )
+
+# Automatic versioning based on https://github.com/jbweston/miniver:
+#
+def get_version_and_cmdclass(package_name):
+    try: # Python 3
+        from importlib.util import module_from_spec, spec_from_file_location
+        spec = spec_from_file_location('version',
+                                       os.path.join(package_name, "_version.py"))
+        module = module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.__version__, module.cmdclass
+    except: # Python 2
+        import imp
+        module = imp.load_source(package_name.split('.')[-1], os.path.join(package_name, "_version.py"))
+        return module.__version__, module.cmdclass
+
+version, ver_cmdclass = get_version_and_cmdclass('mylibrary')
 
 
 #########################################################
@@ -130,13 +147,13 @@ except MyFileNotFoundError:
 #########################################################
 
 setup(
-    name         = "setup-template-cython",
+    name         = "package-template-cython",
     version      = version,
     author       = "Christian Marquardt",
     author_email = "christian@marquardt.sc",
-    url          = "https://github.com/cmarquardt/setup-template-cython",
+    url          = "https://github.com/cmarquardt/package-template-cython",
 
-    provides         = ["setup_template_cython"],
+    provides         = ["package_template_cython"],
     description      = SHORTDESC,
     long_description = DESC,
 
@@ -188,5 +205,8 @@ setup(
     zip_safe = True,  # no Cython extensions
 
     # Custom data files not inside a Python package
-    data_files = datafiles
+    data_files = datafiles,
+
+    # Additional / improved commands
+    cmdclass = cmdclass
 )
