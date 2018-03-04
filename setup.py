@@ -205,7 +205,7 @@ from setuptools import Command # or distutils.core?
 import os, sys
 
 class CleanCommand(Command):
-    description = "custom clean command that forcefully removes dist/build and .egg-info directories"
+    description = "clean after a build, forcefully removing dist/build and .egg-info directories"
     user_options = []
     def initialize_options(self):
         self.cwd = None
@@ -213,7 +213,24 @@ class CleanCommand(Command):
         self.cwd = os.getcwd()
     def run(self):
         assert os.getcwd() == self.cwd, "Must be in package root: %s" % self.cwd
-        os.system("rm -rf ./build ./dist ./*.egg-info")
+        os.system("rm -rfv ./build ./dist ./*.egg-info")
+
+# Cythonise command
+#
+class CythonizeCommand(Command):
+    description  = "run cython on the cython-based extensions"
+    user_options = []
+    extensions   = None
+    def initialize_options(self):
+        self.cwd = None
+    def finalize_options(self):
+        self.cwd = os.getcwd()
+    def run(self):
+        from Cython.Build import cythonize
+        if self.extensions is not None:
+            dummy = cythonize(self.extensions)
+        else:
+            print("WARNING: Nothing found to cythonize...")
 
 # Extract __version__ from the package __init__.py
 # (since it's not a good idea to actually run __init__.py during the build process).
@@ -250,6 +267,8 @@ ext_module_helloworld = declare_extension( "mylibrary.subpackage.helloworld", op
 ext_modules = [ext_module_dostuff,
                ext_module_compute,
                ext_module_helloworld]
+CythonizeCommand.extensions = ext_modules
+
 if use_cython:
     ext_modules = cythonize(ext_modules)
 
@@ -338,7 +357,9 @@ setup(
     data_files = datafiles,
 
     # Additional / improve commands
-    cmdclass = {
-                "clean": CleanCommand
+    cmdclass = {"clean": CleanCommand,
+                "cython": CythonizeCommand,
+                "cythonise": CythonizeCommand,
+                "cythonize": CythonizeCommand
                 }
 )

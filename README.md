@@ -46,21 +46,23 @@ Our [`setup.py`](setup.py) features the following:
  - The most important fields of `setup()`
    - If this is all you need, [simple-cython-example](https://github.com/thearn/simple-cython-example) is much cleaner.
    - If this is all you need, and you somehow ended up here even though your project is pure Python, [PyPA's sampleproject](https://github.com/pypa/sampleproject/blob/master/setup.py) (as mentioned in [[4]][setup-py]) has more detail on this.
- - How to get `absolute_import` working in a Cython project
+ - Get `absolute_import` working in a Cython project
    - For compatibility with both Python 3 and Python 2.7 (with `from __future__ import absolute_import`)
    - For scientific developers used to Python 2.7, this is perhaps the only tricky part in getting custom Cython code to play nicely with Python 3. (As noted elsewhere[[a]](http://www.python3statement.org/)[[b]](http://python-3-for-scientists.readthedocs.io/en/latest/), it is time to move to Python 3.)
- - How to automatically grab `__version__` from `mylibrary/__init__.py` (using AST; no import or regexes), so that you [DontRepeatYourself](http://wiki.c2.com/?DontRepeatYourself) declaring your package version (based on [[5]][getversion])
+ - Automatically grab `__version__` from `mylibrary/__init__.py` (using AST; no import or regexes), so that you [DontRepeatYourself](http://wiki.c2.com/?DontRepeatYourself) declaring your package version (based on [[5]][getversion])
  - Support for compiler and linker flags for OpenMP, to support `cython.parallel.prange`.
- - How to make `setup.py` pick up non-package data files, such as your documentation and usage examples (based on [[6]][datafolder]). However, see the section on **Packaging data files** below.
- - How to make `setup.py` pick up data files inside your Python packages.
- - How to enforce that `setup.py` is running under a given minimum Python version ([considered harmful](http://stackoverflow.com/a/1093331), but if duck-checking for individual features is not an option for a reason or another) (based on [[7]][enforcing]).
- - Disabling `zip_safe`. Having `zip_safe` enabled (which will in practice happen by default) is a bad idea for Cython projects, because:
+ - Make `setup.py` pick up non-package data files, such as your documentation and usage examples (based on [[6]][datafolder]). However, see the section on **Packaging data files** below.
+ - Make `setup.py` pick up data files inside your Python packages.
+ - Enforce that `setup.py` is running under a given minimum Python version ([considered harmful](http://stackoverflow.com/a/1093331), but if duck-checking for individual features is not an option for a reason or another) (based on [[7]][enforcing]).
+ - Disable `zip_safe`: Having `zip_safe` enabled (which will in practice happen by default) is a bad idea for Cython projects, because:
    - Cython (as of this writing, version 0.25) will not see `.pxd` headers inside installed `.egg` zipfiles. Thus other libraries cannot `cimport` modules from yours if it has `zip_safe` set.
    - At (Python-level) `import` time, the OS's dynamic library loader usually needs to have the `.so` unzipped (from the `.egg` zipfile) to a temporary directory anyway.
 
 In contrast to Technologicat's original version](https://github.com/Technologicat/setup-template-cython), I modified the following:
 
  - The mechanism of using Cython in cooperation with `setuptools` was slightly changed in order to support target systems not having Cython installed;
+ - Added an improved clean command;
+ - Added a `cython` command to manually regenerating C source files for cython-based extensions;
  - Removed hardcoded compiler and linker switches, including support for debug vs. optimised builds;
  - Removed the distinction math vs. non-math extensions, instead always linking with -lm.
 
