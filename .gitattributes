@@ -1,0 +1,2 @@
+# The following is part of miniver for automated versioning:
+mylibrary/_static_version.py export-subst
