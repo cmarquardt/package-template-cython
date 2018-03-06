@@ -147,7 +147,7 @@ class CleanCommand(Command):
         self.cwd = os.getcwd()
     def run(self):
         assert os.getcwd() == self.cwd, "Must be in package root: %s" % self.cwd
-        os.system("rm -rfv ./build ./dist ./*.egg-info ./__pycache_ *.so *.c")
+        os.system("rm -rfv ./build ./dist ./*.egg-info ./__pycache__ *.so *.c")
 
 
 cmdclass = {"clean": CleanCommand}
