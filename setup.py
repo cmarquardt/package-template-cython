@@ -216,6 +216,7 @@ class CleanCommand(Command):
         assert os.getcwd() == self.cwd, "Must be in package root: %s" % self.cwd
         os.system("rm -rfv ./build ./dist ./*.egg-info")
 
+
 # Cythonise command
 #
 class CythonizeCommand(Command):
@@ -283,19 +284,24 @@ cmdclass.update(ver_cmdclass) # Add ver_cmdclass to cmdclass; not ver_cmdclass w
 # Set up modules
 #########################################################
 
-# Declare Cython extension modules here
+# Declare Cython extension modules
 #
 ext_module_dostuff    = declare_extension( "mylibrary.dostuff",               openmp = False , include_dirs = my_include_dirs )
 ext_module_compute    = declare_extension( "mylibrary.compute",               openmp = False , include_dirs = my_include_dirs )
 ext_module_helloworld = declare_extension( "mylibrary.subpackage.helloworld", openmp = False , include_dirs = my_include_dirs )
 
-# this is mainly to allow a manual logical ordering of the declared modules
+# This is mainly to allow a manual logical ordering of the declared modules
 #
 ext_modules = [ext_module_dostuff,
                ext_module_compute,
                ext_module_helloworld]
+
+# Also support setup.ps's cython command (which requires the extensions)
+#
 CythonizeCommand.extensions = ext_modules
 
+# ...and cythonize (if needed)
+#
 if use_cython:
     ext_modules = cythonize(ext_modules)
 
@@ -381,8 +387,10 @@ setup(
     zip_safe = False,
 
     # Custom data files not inside a Python package
+    #
     data_files = datafiles,
 
-    # Additional / improved commands
+    # Custom commands
+    #
     cmdclass = cmdclass
 )

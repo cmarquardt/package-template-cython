@@ -9,4 +9,4 @@ from __future__ import absolute_import
 from ._version import __version__
 del _version
 
-# add any imports here, if you wish to bring things into the library's top-level namespace when the library is imported.
+# Add any imports here, if you wish to bring things into the library's top-level namespace when the library is imported.
