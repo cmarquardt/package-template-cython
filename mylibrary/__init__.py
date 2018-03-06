@@ -4,8 +4,7 @@
 
 from __future__ import absolute_import
 
-# This is extracted automatically by the top-level setup.py.
-#__version__ = '0.1.5'
+# Version string is automatically generated from git tags (using miniver)
 
 from ._version import __version__
 del _version
