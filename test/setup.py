@@ -2,7 +2,12 @@
 #
 """setuptools-based setup.py template for Cython projects.
 
-Setup for local modules in this directory, that are not installed as part of the library.
+Setup for local modules in this directory, that are not installed as part of
+the library.
+
+Note: This is essentially a stripped down version of the setup.py template
+in the top level directory, adapted to facilitate the build_ext --inplace
+required to build the cython module being tested.
 
 Supports Python 2.7 and 3.4.
 
@@ -25,11 +30,6 @@ except:  # FileNotFoundError does not exist in Python 2.7
 # General config
 #########################################################
 
-# Choose build type.
-#
-build_type="optimized"
-#build_type="debug"
-
 
 #########################################################
 # Init
@@ -46,10 +46,11 @@ import os
 from setuptools import setup
 from setuptools.extension import Extension
 
-try:
-    from Cython.Build import cythonize
-except ImportError:
-    sys.exit("Cython not found. Cython is needed to build the extension modules.")
+# Cython installed? Must be imported after setuptools Extension...
+# ...and we insist on being able to load because we're testing some
+# Cython functionality.
+#
+from Cython.Build import cythonize
 
 
 #########################################################
@@ -65,19 +66,10 @@ except ImportError:
 #
 # Note that -O3 may sometimes cause mysterious problems, so we limit ourselves to -O2.
 
-# Modules involving numerical computations
-#
-extra_compile_args_math_optimized    = ['-march=native', '-O2', '-msse', '-msse2', '-mfma', '-mfpmath=sse']
-extra_compile_args_math_debug        = ['-march=native', '-O0', '-g']
-extra_link_args_math_optimized       = []
-extra_link_args_math_debug           = []
-
-# Modules that do not involve numerical computations
-#
-extra_compile_args_nonmath_optimized = ['-O2']
-extra_compile_args_nonmath_debug     = ['-O0', '-g']
-extra_link_args_nonmath_optimized    = []
-extra_link_args_nonmath_debug        = []
+extra_compile_args = ['-O2']
+extra_compile_args = ['-O0', '-g']
+extra_link_args    = []
+extra_link_args    = []
 
 # Additional flags to compile/link with OpenMP
 #
@@ -97,57 +89,33 @@ openmp_link_args    = ['-fopenmp']
 my_include_dirs = ["."]
 
 
-# Choose the base set of compiler and linker flags.
+# Wrapper to create (Cython-based) extensions
 #
-if build_type == 'optimized':
-    my_extra_compile_args_math    = extra_compile_args_math_optimized
-    my_extra_compile_args_nonmath = extra_compile_args_nonmath_optimized
-    my_extra_link_args_math       = extra_link_args_math_optimized
-    my_extra_link_args_nonmath    = extra_link_args_nonmath_optimized
-    my_debug = False
-    print( "build configuration selected: optimized" )
-elif build_type == 'debug':
-    my_extra_compile_args_math    = extra_compile_args_math_debug
-    my_extra_compile_args_nonmath = extra_compile_args_nonmath_debug
-    my_extra_link_args_math       = extra_link_args_math_debug
-    my_extra_link_args_nonmath    = extra_link_args_nonmath_debug
-    my_debug = True
-    print( "build configuration selected: debug" )
-else:
-    raise ValueError("Unknown build configuration '%s'; valid: 'optimized', 'debug'" % (build_type))
-
-
-def declare_cython_extension(extName, use_math=False, use_openmp=False):
+# FIXME: Add libraries - also from a setup.cfg file?
+# FIXME: Add arbitrary source code / C files in addition to the main cython .pyx
+def declare_extension(extName, openmp = False, include_dirs = None):
     """Declare a Cython extension module for setuptools.
 
 Parameters:
     extName : str
-        Absolute module name, e.g. use `mylibrary.mypackage.subpackage`
-        for the Cython source file `mylibrary/mypackage/subpackage.pyx`.
+        Absolute module name, e.g. use `mylibrary.mypackage.mymodule`
+        for the Cython source file `mylibrary/mypackage/mymodule.pyx`.
 
-    use_math : bool
-        If True, set math flags and link with ``libm``.
-
-    use_openmp : bool
+    openmp : bool
         If True, compile and link with OpenMP.
 
 Return value:
     Extension object
         that can be passed to ``setuptools.setup``.
 """
-    extPath = extName.replace(".", os.path.sep)+".pyx"
+    extPath = extName.replace(".", os.path.sep) + ".pyx"
 
-    if use_math:
-        compile_args = list(my_extra_compile_args_math) # copy
-        link_args    = list(my_extra_link_args_math)
-        libraries    = ["m"]  # link libm; this is a list of library names without the "lib" prefix
-    else:
-        compile_args = list(my_extra_compile_args_nonmath)
-        link_args    = list(my_extra_link_args_nonmath)
-        libraries    = None  # value if no libraries, see setuptools.extension._Extension
+    compile_args = list(extra_compile_args) # copy
+    link_args    = list(extra_link_args)
+    libraries    = ["m"]  # link libm; this is a list of library names without the "lib" prefix
 
     # OpenMP
-    if use_openmp:
+    if openmp:
         compile_args.insert( 0, openmp_compile_args )
         link_args.insert( 0, openmp_link_args )
 
@@ -158,33 +126,48 @@ Return value:
     #
     return Extension( extName,
                       [extPath],
-                      extra_compile_args=compile_args,
-                      extra_link_args=link_args,
-                      libraries=libraries
+                      extra_compile_args = compile_args,
+                      extra_link_args    = link_args,
+                      include_dirs       = include_dirs,
+                      libraries          = libraries
                     )
+
+
+# Clean command (from https://stackoverflow.com/a/1712544)
+#
+from setuptools import Command # or distutils.core?
+import os, sys
+
+class CleanCommand(Command):
+    description = "clean after a build, forcefully removing dist/build and .egg-info directories"
+    user_options = []
+    def initialize_options(self):
+        self.cwd = None
+    def finalize_options(self):
+        self.cwd = os.getcwd()
+    def run(self):
+        assert os.getcwd() == self.cwd, "Must be in package root: %s" % self.cwd
+        os.system("rm -rfv ./build ./dist ./*.egg-info ./__pycache_ *.so *.c")
+
+
+cmdclass = {"clean": CleanCommand}
 
 
 #########################################################
 # Set up modules
 #########################################################
 
-# declare Cython extension modules here
+# Declare Cython extension modules
 #
-ext_module_cythonmodule = declare_cython_extension( "cython_module", use_math=False, use_openmp=False )
+ext_module_cythonmodule = declare_extension("cython_module", openmp = False)
 
-# this is mainly to allow a manual logical ordering of the declared modules
+# This is mainly to allow a manual logical ordering of the declared modules
 #
-cython_ext_modules = [ext_module_cythonmodule]
+ext_modules = [ext_module_cythonmodule]
 
-# Call cythonize() explicitly, as recommended in the Cython documentation. See
-#     http://cython.readthedocs.io/en/latest/src/reference/compilation.html#compiling-with-distutils
+# ...and cythonize (if needed)
 #
-# This will favor Cython's own handling of '.pyx' sources over that provided by setuptools.
-#
-# Note that my_ext_modules is just a list of Extension objects. We could add any C sources (not coming from Cython modules) here if needed.
-# cythonize() just performs the Cython-level processing, and returns a list of Extension objects.
-#
-my_ext_modules = cythonize( cython_ext_modules, include_path=my_include_dirs, gdb_debug=my_debug )
+ext_modules = cythonize(ext_modules)
 
 
 #########################################################
@@ -200,6 +183,9 @@ setup(
 
     # All extension modules (list of Extension objects)
     #
-    ext_modules = my_ext_modules
-)
+    ext_modules = ext_modules,
 
+    # Custom commands
+    #
+    cmdclass = cmdclass
+)
