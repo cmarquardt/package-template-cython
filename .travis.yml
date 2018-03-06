@@ -4,6 +4,7 @@ python:
   - "3.6"
 # Command to install dependencies
 install:
+  - pip install cython
   - pip install .
   - cd test ; python setup.py build_ext --inplace
 # Command to run tests
