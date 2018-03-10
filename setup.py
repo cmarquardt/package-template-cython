@@ -42,23 +42,14 @@ from __future__ import division, print_function, absolute_import
 
 import os
 import sys
-if sys.version_info < (2,7):
-    sys.exit('Sorry, Python < 2.7 is not supported')
-
-if sys.version_info[0] < 3:
-    import ConfigParser as configparser
-else:
-    import configparser
 
 from setuptools           import setup
 from setuptools           import Command
 from setuptools.extension import Extension
 
-#try: # Cython installed? Must be imported after setuptools Extension...
-#    from Cython.Build import cythonize
-#    use_cython = True
-#except: # Cython not found; just use C sources
-#    use_cython = False
+if sys.version_info < (2,7):
+    sys.exit('Sorry, Python < 2.7 is not supported')
+
 
 #-------------------------------------------------------------------------------
 # Package information
@@ -295,9 +286,9 @@ setup(
 
     # See http://setuptools.readthedocs.io/en/latest/setuptools.html
 
-    setup_requires   = ["setuptools>=18.0",
-                        "numpy"],
+    setup_requires   = ["setuptools>=18.0", "numpy", "pytest-runner"],
     install_requires = ["numpy"],
+    test_requires    = ["pytest"],
 
     # All extension modules (list of Extension objects)
 
