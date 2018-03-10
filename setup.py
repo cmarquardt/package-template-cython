@@ -288,7 +288,6 @@ setup(
 
     setup_requires   = ["setuptools>=18.0", "numpy", "pytest-runner"],
     install_requires = ["numpy"],
-    test_requires    = ["pytest"],
 
     # All extension modules (list of Extension objects)
 
